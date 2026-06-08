@@ -44,6 +44,7 @@ import com.example.data.model.SavingGoal
 import com.example.data.model.Transaction
 import com.example.ui.ChatMessage
 import com.example.ui.FinanceViewModel
+import com.example.ui.theme.*
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
@@ -176,7 +177,8 @@ fun DashboardScreen(
                                 addTxDefaultType = "CREDIT"
                                 showAddTxDialog = true
                             },
-                            onAddGoalClick = { showAddGoalDialog = true }
+                            onAddGoalClick = { showAddGoalDialog = true },
+                            onLoadMaySampleData = { viewModel.generateMaySampleData() }
                         )
                     }
                     "transactions" -> {
@@ -263,19 +265,29 @@ fun HeaderBanner(
     val netBalance = totalCredit - totalDebit
 
     val format = remember { NumberFormat.getCurrencyInstance(Locale("en", "IN")) }
+    val isDark = false
+
+    val headerGradient = if (isDark) {
+        Brush.verticalGradient(
+            colors = listOf(
+                MaterialTheme.colorScheme.surfaceVariant,
+                MaterialTheme.colorScheme.primaryContainer
+            )
+        )
+    } else {
+        Brush.verticalGradient(
+            colors = listOf(
+                MaterialTheme.colorScheme.primary,
+                Color(0xFF1E293B) // Premium Dark Slate Navy
+            )
+        )
+    }
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(bottomStart = 28.dp, bottomEnd = 28.dp))
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFF034C3C), // Beautiful raw Emerald Green
-                        Color(0xFF0A3027)
-                    )
-                )
-            )
+            .background(headerGradient)
             .padding(top = 20.dp, bottom = 28.dp, start = 24.dp, end = 24.dp)
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
@@ -305,14 +317,14 @@ fun HeaderBanner(
                     onClick = onScanClicked,
                     enabled = !isScanning,
                     colors = ButtonDefaults.filledTonalButtonColors(
-                        containerColor = Color(0xFFC1F0E5),
-                        contentColor = Color(0xFF053E31)
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
                     ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     if (isScanning) {
                         CircularProgressIndicator(
-                            color = Color(0xFF053E31),
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
                             modifier = Modifier.size(16.dp),
                             strokeWidth = 2.dp
                         )
@@ -352,7 +364,7 @@ fun HeaderBanner(
                             modifier = Modifier
                                 .size(32.dp)
                                 .clip(CircleShape)
-                                .background(Color(0xFF1B6E4A)),
+                                .background(if (isDark) FinanceIncomeGreenDark else FinanceIncomeGreen),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
@@ -393,7 +405,7 @@ fun HeaderBanner(
                             modifier = Modifier
                                 .size(32.dp)
                                 .clip(CircleShape)
-                                .background(Color(0xFFAD3D30)),
+                                .background(if (isDark) FinanceExpenseRedDark else FinanceExpenseRed),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
@@ -471,9 +483,11 @@ fun DashboardTab(
     onRunAnalysis: () -> Unit,
     onAddSpendClick: () -> Unit,
     onAddEarningClick: () -> Unit,
-    onAddGoalClick: () -> Unit
+    onAddGoalClick: () -> Unit,
+    onLoadMaySampleData: () -> Unit
 ) {
     val rps = remember { NumberFormat.getCurrencyInstance(Locale("en", "IN")) }
+    val isDark = false
 
     val parsedSpends = remember(transactions) {
         transactions.filter { it.type == "DEBIT" }
@@ -511,7 +525,9 @@ fun DashboardTab(
                             modifier = Modifier
                                 .weight(1f)
                                 .clickable { onAddSpendClick() },
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFFFFEBEE)),
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (isDark) Color(0xFF3B1E1E) else Color(0xFFFFEBEE)
+                            ),
                             shape = RoundedCornerShape(12.dp)
                         ) {
                             Column(
@@ -523,7 +539,7 @@ fun DashboardTab(
                                 Box(
                                     modifier = Modifier
                                         .size(32.dp)
-                                        .background(Color(0xFFE57373), CircleShape),
+                                        .background(if (isDark) Color(0xFFEF4444) else Color(0xFFE57373), CircleShape),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
@@ -533,7 +549,12 @@ fun DashboardTab(
                                     )
                                 }
                                 Spacer(modifier = Modifier.height(6.dp))
-                                Text("Add Spend", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFFC62828))
+                                Text(
+                                    "Add Spend", 
+                                    fontSize = 11.sp, 
+                                    fontWeight = FontWeight.Bold, 
+                                    color = if (isDark) Color(0xFFFCA5A5) else Color(0xFFC62828)
+                                )
                             }
                         }
 
@@ -542,7 +563,9 @@ fun DashboardTab(
                             modifier = Modifier
                                 .weight(1f)
                                 .clickable { onAddEarningClick() },
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F5E9)),
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (isDark) Color(0xFF143225) else Color(0xFFE8F5E9)
+                            ),
                             shape = RoundedCornerShape(12.dp)
                         ) {
                             Column(
@@ -554,7 +577,7 @@ fun DashboardTab(
                                 Box(
                                     modifier = Modifier
                                         .size(32.dp)
-                                        .background(Color(0xFF81C784), CircleShape),
+                                        .background(if (isDark) Color(0xFF10B981) else Color(0xFF81C784), CircleShape),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
@@ -564,7 +587,12 @@ fun DashboardTab(
                                     )
                                 }
                                 Spacer(modifier = Modifier.height(6.dp))
-                                Text("Add Earning", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2E7D32))
+                                Text(
+                                    "Add Earning", 
+                                    fontSize = 11.sp, 
+                                    fontWeight = FontWeight.Bold, 
+                                    color = if (isDark) Color(0xFF6EE7B7) else Color(0xFF2E7D32)
+                                )
                             }
                         }
 
@@ -573,7 +601,9 @@ fun DashboardTab(
                             modifier = Modifier
                                 .weight(1f)
                                 .clickable { onAddGoalClick() },
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF8E1)),
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (isDark) Color(0xFF382D16) else Color(0xFFFFF8E1)
+                            ),
                             shape = RoundedCornerShape(12.dp)
                         ) {
                             Column(
@@ -585,7 +615,7 @@ fun DashboardTab(
                                 Box(
                                     modifier = Modifier
                                         .size(32.dp)
-                                        .background(Color(0xFFFFD54F), CircleShape),
+                                        .background(if (isDark) Color(0xFFF59E0B) else Color(0xFFFFD54F), CircleShape),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
@@ -595,9 +625,32 @@ fun DashboardTab(
                                     )
                                 }
                                 Spacer(modifier = Modifier.height(6.dp))
-                                Text("Add Savings", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFFF57F17))
+                                Text(
+                                    "Add Savings", 
+                                    fontSize = 11.sp, 
+                                    fontWeight = FontWeight.Bold, 
+                                    color = if (isDark) Color(0xFFFDE047) else Color(0xFFF57F17)
+                                )
                             }
                         }
+                    }
+                    Spacer(modifier = Modifier.height(14.dp))
+                    OutlinedButton(
+                        onClick = onLoadMaySampleData,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.primary
+                        ),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f))
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "May Sample Data",
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Populate May Month Sample Data", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -690,7 +743,7 @@ fun DashboardTab(
                         onClick = onRunAnalysis,
                         enabled = !aiAnalysisLoading,
                         modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF034C3C))
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Search,
@@ -847,6 +900,7 @@ fun GoalItemCard(
     val rps = remember { NumberFormat.getCurrencyInstance(Locale("en", "IN")) }
     val progress = if (goal.targetAmount > 0) (goal.currentAmount / goal.targetAmount).toFloat() else 0f
     val percentText = "${(progress * 100).toInt()}%"
+    val isDark = false
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -939,7 +993,11 @@ fun GoalItemCard(
                     .fillMaxWidth()
                     .height(8.dp)
                     .clip(CircleShape),
-                color = if (progress >= 1f) Color(0xFF1B6E4A) else MaterialTheme.colorScheme.primary,
+                color = if (progress >= 1f) {
+                    if (isDark) FinanceIncomeGreenDark else FinanceIncomeGreen
+                } else {
+                    MaterialTheme.colorScheme.primary
+                },
                 trackColor = MaterialTheme.colorScheme.surfaceVariant
             )
 
@@ -954,7 +1012,11 @@ fun GoalItemCard(
                     text = "Goal Target: $percentText",
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
-                    color = if (progress >= 1f) Color(0xFF1B6E4A) else MaterialTheme.colorScheme.onSurface
+                    color = if (progress >= 1f) {
+                        if (isDark) FinanceIncomeGreenDark else FinanceIncomeGreen
+                    } else {
+                        MaterialTheme.colorScheme.onSurface
+                    }
                 )
 
                 // Quick saving increment triggers
@@ -1241,6 +1303,7 @@ fun TransactionItemCard(
     val rps = remember { NumberFormat.getCurrencyInstance(Locale("en", "IN")) }
     val sdf = remember { SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault()) }
     val formattedDate = remember(tx.timestamp) { sdf.format(Date(tx.timestamp)) }
+    val isDark = false
 
     val emoji = when (tx.category) {
         "Food & Dining" -> "🍔"
@@ -1281,7 +1344,11 @@ fun TransactionItemCard(
                         .size(40.dp)
                         .clip(CircleShape)
                         .background(
-                            if (tx.type == "CREDIT") Color(0xFFE8F5E9) else Color(0xFFFFEBEE)
+                            if (tx.type == "CREDIT") {
+                                if (isDark) FinanceIncomeGreenBgDark else FinanceIncomeGreenBg
+                            } else {
+                                if (isDark) FinanceExpenseRedBgDark else FinanceExpenseRedBg
+                            }
                         ),
                     contentAlignment = Alignment.Center
                 ) {
@@ -1307,13 +1374,13 @@ fun TransactionItemCard(
                             Box(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(4.dp))
-                                    .background(Color(0xFFE0F7FA))
+                                    .background(if (isDark) Color(0xFF132D30) else Color(0xFFE0F7FA))
                                     .padding(horizontal = 4.dp, vertical = 2.dp)
                             ) {
                                 Text(
                                     "UPI",
                                     fontSize = 8.sp,
-                                    color = Color(0xFF006064),
+                                    color = if (isDark) Color(0xFF2DD4BF) else Color(0xFF006064),
                                     fontWeight = FontWeight.ExtraBold
                                 )
                             }
@@ -1325,13 +1392,23 @@ fun TransactionItemCard(
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(4.dp))
-                                .background(if (isCard) Color(0xFFFEF3C7) else Color(0xFFE0F2FE))
+                                .background(
+                                    if (isCard) {
+                                        if (isDark) Color(0xFF332A15) else Color(0xFFFEF3C7)
+                                    } else {
+                                        if (isDark) Color(0xFF1E2D3D) else Color(0xFFE0F2FE)
+                                    }
+                                )
                                 .padding(horizontal = 4.dp, vertical = 2.dp)
                         ) {
                             Text(
                                 text = if (isCard) "CARD" else "BANK",
                                 fontSize = 8.sp,
-                                color = if (isCard) Color(0xFF92400E) else Color(0xFF0369A1),
+                                color = if (isCard) {
+                                    if (isDark) Color(0xFFFBBF24) else Color(0xFF92400E)
+                                } else {
+                                    if (isDark) Color(0xFF60A5FA) else Color(0xFF0369A1)
+                                },
                                 fontWeight = FontWeight.Bold
                             )
                         }
@@ -1364,7 +1441,11 @@ fun TransactionItemCard(
                     text = "${if (tx.type == "DEBIT") "-" else "+"} ${rps.format(tx.amount)}",
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp,
-                    color = if (tx.type == "DEBIT") Color(0xFFAD3D30) else Color(0xFF1B6E4A),
+                    color = if (tx.type == "DEBIT") {
+                        if (isDark) FinanceExpenseRedDark else FinanceExpenseRed
+                    } else {
+                        if (isDark) FinanceIncomeGreenDark else FinanceIncomeGreen
+                    },
                     modifier = Modifier.testTag("tx_amount_${tx.id}")
                 )
 
@@ -1478,12 +1559,16 @@ fun AiAssistantTab(
                 }
 
                 val containerColor = if (msg.isUser) {
-                    Color(0xFF034C3C) // Emerald green user bubble
+                    MaterialTheme.colorScheme.primary
                 } else {
-                    Color.White // Crisp white advisor bubble
+                    MaterialTheme.colorScheme.surfaceVariant
                 }
 
-                val textColor = if (msg.isUser) Color.White else Color.Black
+                val textColor = if (msg.isUser) {
+                    MaterialTheme.colorScheme.onPrimary
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                }
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -1513,7 +1598,7 @@ fun AiAssistantTab(
                         horizontalArrangement = Arrangement.Start
                     ) {
                         Card(
-                            colors = CardDefaults.cardColors(containerColor = Color.White),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                             shape = RoundedCornerShape(16.dp, 16.dp, 16.dp, 4.dp),
                             modifier = Modifier.shadow(2.dp, shape = RoundedCornerShape(16.dp, 16.dp, 16.dp, 4.dp))
                         ) {
@@ -1524,7 +1609,7 @@ fun AiAssistantTab(
                                 CircularProgressIndicator(
                                     modifier = Modifier.size(14.dp),
                                     strokeWidth = 2.dp,
-                                    color = Color(0xFF034C3C)
+                                    color = MaterialTheme.colorScheme.primary
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
@@ -1617,13 +1702,13 @@ fun AiAssistantTab(
                     },
                     modifier = Modifier
                         .clip(CircleShape)
-                        .background(Color(0xFF034C3C))
+                        .background(MaterialTheme.colorScheme.primary)
                         .testTag("send_chat_button")
                 ) {
                     Icon(
                         imageVector = Icons.Default.Send,
                         contentDescription = "Send",
-                        tint = Color.White,
+                        tint = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier.size(18.dp)
                     )
                 }

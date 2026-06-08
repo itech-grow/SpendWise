@@ -18,7 +18,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.util.Calendar
+import java.util.TimeZone
 
 data class ChatMessage(
     val message: String,
@@ -49,6 +52,15 @@ class FinanceViewModel(private val repository: FinanceRepository) : ViewModel() 
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
+
+    init {
+        viewModelScope.launch {
+            delay(1000) // Small delay to let the flow collect initial database state
+            if (allTransactions.value.isEmpty()) {
+                generateMaySampleDataInternal()
+            }
+        }
+    }
 
     // --- SMS Inbox Scanning ---
     private val _isScanning = MutableStateFlow(false)
@@ -331,6 +343,89 @@ class FinanceViewModel(private val repository: FinanceRepository) : ViewModel() 
             _aiAnalysis.value = answer
             _aiAnalysisLoading.value = false
         }
+    }
+
+    fun generateMaySampleData() {
+        viewModelScope.launch {
+            generateMaySampleDataInternal()
+        }
+    }
+
+    private suspend fun generateMaySampleDataInternal() {
+        // Insert Budgets
+        val initialBudgets = listOf(
+            Budget("Food & Dining", 8000.0),
+            Budget("Groceries", 6000.0),
+            Budget("Utilities", 5000.0),
+            Budget("Shopping", 10000.0),
+            Budget("Transport", 4000.0)
+        )
+        for (b in initialBudgets) {
+            repository.insertBudget(b)
+        }
+
+        // Insert Saving Goals
+        val initialGoals = listOf(
+            SavingGoal(name = "Emergency Fund", targetAmount = 50000.0, currentAmount = 15000.0, deadline = "Dec 2026"),
+            SavingGoal(name = "Summer Vacation", targetAmount = 30000.0, currentAmount = 22000.0, deadline = "Jun 2026")
+        )
+        for (g in initialGoals) {
+            repository.insertSavingGoal(g)
+        }
+
+        // Insert Transactions
+        val txs = listOf(
+            // Earnings
+            createMayTx(1, 75000.0, "CREDIT", "Salary", "Tech Corp Salary Credit", false, "HDFC Salary Acct", "BANK"),
+            createMayTx(15, 3500.0, "CREDIT", "Investment", "Mutual Fund Payout", false, "Zerodha", "BANK"),
+            createMayTx(22, 12000.0, "CREDIT", "Income", "Freelance Work Payment", true, "GPay/UPI", "BANK"),
+            
+            // Spends (Debits)
+            createMayTx(2, 18000.0, "DEBIT", "Utilities", "House Rent Payment", false, "SBI Account", "BANK"),
+            createMayTx(5, 4500.0, "DEBIT", "Groceries", "DMart Supermarket", false, "HDFC Card", "CARD"),
+            createMayTx(8, 2200.0, "DEBIT", "Food & Dining", "Zomato Restaurant dine", true, "PhonePe/UPI", "BANK"),
+            createMayTx(10, 3100.0, "DEBIT", "Utilities", "Electricity Bill (BESCOM)", true, "GPay/UPI", "BANK"),
+            createMayTx(12, 6800.0, "DEBIT", "Shopping", "Amazon Online Order", false, "SBI Card", "CARD"),
+            createMayTx(18, 1500.0, "DEBIT", "Entertainment", "PVR Cinemas booking", true, "Paytm/UPI", "BANK"),
+            createMayTx(20, 2500.0, "DEBIT", "Transport", "Shell Fuel Station", false, "AMEX Card", "CARD"),
+            createMayTx(24, 1200.0, "DEBIT", "Groceries", "Blinkit grocery delivery", true, "PhonePe/UPI", "BANK"),
+            createMayTx(26, 1800.0, "DEBIT", "Others", "Apollo Pharmacy Medicine", false, "HDFC Card", "CARD"),
+            createMayTx(28, 950.0, "DEBIT", "Food & Dining", "Swiggy food delivery", true, "GPay/UPI", "BANK")
+        )
+
+        for (tx in txs) {
+            repository.insertTransaction(tx)
+        }
+    }
+
+    private fun createMayTx(
+        day: Int,
+        amount: Double,
+        type: String,
+        category: String,
+        merchant: String,
+        isUpi: Boolean,
+        senderOrAccount: String,
+        paymentType: String
+    ): Transaction {
+        val cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+        cal.set(Calendar.YEAR, 2026)
+        cal.set(Calendar.MONTH, Calendar.MAY)
+        cal.set(Calendar.DAY_OF_MONTH, day)
+        cal.set(Calendar.HOUR_OF_DAY, 12)
+        cal.set(Calendar.MINUTE, 0)
+        cal.set(Calendar.SECOND, 0)
+        cal.set(Calendar.MILLISECOND, 0)
+        return Transaction(
+            amount = amount,
+            type = type,
+            category = category,
+            merchant = merchant,
+            timestamp = cal.timeInMillis,
+            isUpi = isUpi,
+            senderOrAccount = senderOrAccount,
+            paymentType = paymentType
+        )
     }
 
     fun clearChat() {
