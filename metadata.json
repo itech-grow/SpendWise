@@ -1,0 +1,6 @@
+{
+  "name": "SpendWise",
+  "description": "Monitor household spending, track UPI payments automatically, and easily analyze results using Gemini AI.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
